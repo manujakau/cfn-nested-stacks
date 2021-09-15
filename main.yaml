@@ -64,7 +64,7 @@ Resources:
   AnVPCStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://serverless-telia.s3.eu-north-1.amazonaws.com/vpc.yaml
+      TemplateURL: https://cfn-automated-objects.s3.eu-central-1.amazonaws.com/vpc.yaml
       Parameters:
         PrivateSubnet1CIDR: !Ref PrivateSubnet1CIDR
         PublicSubnet1CIDR: !Ref PublicSubnet1CIDR
@@ -73,7 +73,7 @@ Resources:
   AnBastionStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://serverless-telia.s3.eu-north-1.amazonaws.com/ec2.yaml
+      TemplateURL: https://cfn-automated-objects.s3.eu-central-1.amazonaws.com/ec2.yaml
       Parameters:
         VPCID: !GetAtt AnVPCStack.Outputs.AnVPCID
         VPCSubnetID: !GetAtt AnVPCStack.Outputs.AnPublicSubnet1
