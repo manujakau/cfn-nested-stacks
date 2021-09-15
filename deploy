@@ -1,0 +1,39 @@
+#!/bin/bash
+STACK_NAME=$1
+ACTION=$2
+
+create_stack() {
+    echo "Creating Cloud Formation stack $STACK_NAME"
+    aws s3 cp --recursive s3-stored-modules/. s3://cfn-automated-objects
+    STACK_ID=$( \
+    aws cloudformation create-stack \
+        --stack-name $STACK_NAME \
+        --template-body file://main.yaml | jq -r .StackId )
+
+    echo "${STACK_ID} create on-progress..."
+    aws cloudformation wait stack-create-complete --stack-name ${STACK_ID}
+    aws cloudformation describe-stacks --stack-name $STACK_NAME | jq .Stacks[0].StackStatus | tr -d '"'
+}
+
+update_stack() {
+    echo "Updating Cloud Formation stack $STACK_NAME"
+    aws s3 cp --recursive s3-stored-modules/. s3://cfn-automated-objects
+    aws cloudformation update-stack \
+        --stack-name $STACK_NAME \
+        --template-body file://main.yaml
+
+    read -p "Press Ctrl-C to abort or enter to execute update.... " -n1 -s
+    echo ""
+    echo "${STACK_NAME} update on-progress..."
+    aws cloudformation wait stack-update-complete --stack-name ${STACK_NAME}
+    aws cloudformation describe-stacks --stack-name $STACK_NAME | jq .Stacks[0].StackStatus | tr -d '"'
+}
+
+
+if [ $ACTION == "create" ] ; then
+    create_stack
+elif [ $ACTION == "update" ] ; then
+    update_stack
+else 
+    echo "unexpected request"
+fi
