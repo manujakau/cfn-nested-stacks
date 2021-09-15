@@ -163,7 +163,7 @@ Resources:
 #End OF Route Tables#
 
 Outputs:
-  AnDVPCID:
+  AnVPCID:
     Description: "VPC Id"
     Value: !Ref AnVPC
 
