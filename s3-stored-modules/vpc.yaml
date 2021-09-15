@@ -1,0 +1,305 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: VPC template for Advanced Networks
+
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+    - Label:
+        default: Network Configuration
+      Parameters:
+      - VPCCIDR
+      - PublicSubnet1CIDR
+      - PublicSubnet2CIDR
+      - PublicSubnet3CIDR
+      - PrivateSubnet1CIDR
+      - PrivateSubnet2CIDR
+      - PrivateSubnet3CIDR
+    ParameterLabels:
+      VPCCIDR:
+        default: VPC CIDR
+      PublicSubnet1CIDR:
+        default: Public subnet 1 CIDR
+      PublicSubnet2CIDR:
+        default: Public subnet 2 CIDR
+      PublicSubnet3CIDR:
+        default: Public subnet 3 CIDR
+      PrivateSubnet1CIDR:
+        default: Private subnet 1 CIDR
+      PrivateSubnet2CIDR:
+        default: Private subnet 2 CIDR
+      PrivateSubnet3CIDR:
+        default: Private subnet 3 CIDR
+
+
+Parameters:
+  VPCCIDR:
+    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
+    ConstraintDescription: Must be a valid IP range in x.x.x.x/x notation
+    Default: 10.0.0.0/16
+    Description: CIDR Block for the VPC
+    Type: String
+  PublicSubnet1CIDR:
+    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
+    ConstraintDescription: Must be a valid IP range in x.x.x.x/x notation
+    Default: 10.0.1.0/24
+    Description: CIDR Block for the public DMZ subnet 1 located in Availability Zone 1
+    Type: String
+  PublicSubnet2CIDR:
+    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
+    ConstraintDescription: Must be a valid IP range in x.x.x.x/x notation
+    Default: 10.0.2.0/24
+    Description: CIDR Block for the public DMZ subnet 2 located in Availability Zone 2
+    Type: String
+  PublicSubnet3CIDR:
+    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
+    ConstraintDescription: Must be a valid IP range in x.x.x.x/x notation
+    Default: 10.0.3.0/24
+    Description: CIDR Block for the public DMZ subnet 3 located in Availability Zone 3
+    Type: String
+  PrivateSubnet1CIDR:
+    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
+    ConstraintDescription: Must be a valid IP range in x.x.x.x/x notation
+    Default: 10.0.10.0/24
+    Description: CIDR block for private subnet 1 located in Availability Zone 1
+    Type: String
+  PrivateSubnet2CIDR:
+    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
+    ConstraintDescription: Must be a valid IP range in x.x.x.x/x notation
+    Default: 10.0.11.0/24
+    Description: CIDR block for private subnet 2 located in Availability Zone 2
+    Type: String
+  PrivateSubnet3CIDR:
+    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
+    ConstraintDescription: Must be a valid IP range in x.x.x.x/x notation
+    Default: 10.0.12.0/24
+    Description: CIDR block for private subnet 3 located in Availability Zone 3
+    Type: String
+
+
+Resources:
+#VPC
+  AnVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VPCCIDR
+      EnableDnsSupport: true
+      EnableDnsHostnames: True
+      InstanceTenancy: "default"
+      Tags:
+        - Key: Name
+          Value: "Advanced Networks"
+
+#Subnets#
+#public#
+  AnPublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      MapPublicIpOnLaunch: True
+      CidrBlock: !Ref PublicSubnet1CIDR
+      AvailabilityZone: 
+        Fn::Select: 
+          - 0
+          - Fn::GetAZs: ""
+      Tags:
+        - Key: Name
+          Value: AdvancedNetworks-Public-1
+      VpcId: !Ref AnVPC
+  
+  AnPublicSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      MapPublicIpOnLaunch: True
+      CidrBlock: !Ref PublicSubnet2CIDR
+      AvailabilityZone: 
+        Fn::Select: 
+          - 1
+          - Fn::GetAZs: ""
+      Tags:
+        - Key: Name
+          Value: AdvancedNetworks-Public-2
+      VpcId: !Ref AnVPC
+
+  AnPublicSubnet3:
+    Type: AWS::EC2::Subnet
+    Properties:
+      MapPublicIpOnLaunch: True
+      CidrBlock: !Ref PublicSubnet3CIDR
+      AvailabilityZone: 
+        Fn::Select: 
+          - 2
+          - Fn::GetAZs: ""
+      Tags:
+        - Key: Name
+          Value: AdvancedNetworks-Public-3
+      VpcId: !Ref AnVPC
+
+#Private#
+  AnPrivateSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: !Ref PrivateSubnet1CIDR
+      AvailabilityZone: 
+        Fn::Select: 
+          - 0
+          - Fn::GetAZs: ""
+      Tags:
+        - Key: Name
+          Value: AdvancedNetworks-Private-1
+      VpcId: !Ref AnVPC
+  
+  AnPrivateSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: !Ref PrivateSubnet2CIDR
+      AvailabilityZone: 
+        Fn::Select: 
+          - 1
+          - Fn::GetAZs: ""
+      Tags:
+        - Key: Name
+          Value: AdvancedNetworks-Private-2
+      VpcId: !Ref AnVPC
+  
+  AnPrivateSubnet3:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: !Ref PrivateSubnet3CIDR
+      AvailabilityZone: 
+        Fn::Select: 
+          - 2
+          - Fn::GetAZs: ""
+      Tags:
+        - Key: Name
+          Value: AdvancedNetworks-Private-3
+      VpcId: !Ref AnVPC
+#End Of Subnets#
+
+  AnIGW:
+    Type: AWS::EC2::InternetGateway
+    Properties: 
+      Tags:
+        - Key: Name
+          Value: "Advanced Networks"
+
+  AnEIP:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+
+  AnNatGW:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId:
+        Fn::GetAtt:
+          - AnEIP
+          - AllocationId
+      SubnetId: !Ref AnPublicSubnet1
+      Tags:
+        - Key: Name
+          Value: "Advanced Networks"
+
+  AnVPCGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties: 
+      InternetGatewayId: !Ref AnIGW
+      VpcId: !Ref AnVPC
+
+#Route Tables#
+#public#
+  AnPublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties: 
+      VpcId: !Ref AnVPC
+      Tags:
+        - Key: Name
+          Value: AdvancedNetworks-Public-RTB
+
+  AnPublicDefaultRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: "0.0.0.0/0"
+      GatewayId: !Ref AnIGW
+      RouteTableId: !Ref AnPublicRouteTable
+
+  PublicRouteSubnetAssociation1:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties: 
+      RouteTableId: !Ref AnPublicRouteTable
+      SubnetId: !Ref AnPublicSubnet1
+  
+  PublicRouteSubnetAssociation2:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties: 
+      RouteTableId: !Ref AnPublicRouteTable
+      SubnetId: !Ref AnPublicSubnet2
+
+  PublicRouteSubnetAssociation3:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties: 
+      RouteTableId: !Ref AnPublicRouteTable
+      SubnetId: !Ref AnPublicSubnet3
+
+#private#
+  AnPrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties: 
+      VpcId: !Ref AnVPC
+      Tags:
+        - Key: Name
+          Value: AdvancedNetworks-Private-RTB 
+
+  AnPrivateDefaultRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: "0.0.0.0/0"
+      NatGatewayId: !Ref AnNatGW
+      RouteTableId: !Ref AnPrivateRouteTable
+
+  PrivateRouteSubnetAssociation1:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties: 
+      RouteTableId: !Ref AnPrivateRouteTable
+      SubnetId: !Ref AnPrivateSubnet1
+
+  PrivateRouteSubnetAssociation2:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties: 
+      RouteTableId: !Ref AnPrivateRouteTable
+      SubnetId: !Ref AnPrivateSubnet2
+  
+  PrivateRouteSubnetAssociation3:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties: 
+      RouteTableId: !Ref AnPrivateRouteTable
+      SubnetId: !Ref AnPrivateSubnet3
+#End OF Route Tables#
+
+Outputs:
+  AnDVPCID:
+    Description: "VPC Id"
+    Value: !Ref AnVPC
+
+  AnPublicSubnet1:
+    Description: Public Subnet1
+    Value: !Ref AnPublicSubnet1
+
+  AnPublicSubnet2:
+    Description: Public Subnet 2
+    Value: !Ref AnPublicSubnet2
+
+  AnPublicSubnet3:
+    Description: Public Subnet 3
+    Value: !Ref AnPublicSubnet3
+
+  AnPrivateSubnet1:
+    Description: Private Subnet1
+    Value: !Ref AnPrivateSubnet1
+
+  AnPrivateSubnet2:
+    Description: Private Subnet 2
+    Value: !Ref AnPrivateSubnet2
+
+  AnPrivateSubnet3:
+    Description: Private Subnet 3
+    Value: !Ref AnPrivateSubnet3
