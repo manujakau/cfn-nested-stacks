@@ -65,7 +65,7 @@ Resources:
       InstanceType: t2.medium
       KeyName: !Ref BastionKeyPairName
       SubnetId: !Ref VPCSubnetID
-      SecurityGroupIds: 
+      SecurityGroupIds:
         - !Ref AnBastionSecurityGroup
       Tags:
         - Key: Name
