@@ -102,9 +102,9 @@ Resources:
     Properties:
       TemplateURL: https://cfn-automated-objects.s3.eu-central-1.amazonaws.com/peer-vpc.yaml
       Parameters:
-        PrivateSubnet1CIDR: !Ref PeerPrivateSubnet1CIDR
-        PublicSubnet1CIDR: !Ref PeerPublicSubnet1CIDR
-        VPCCIDR: !Ref PeerVPCCIDR
+        PeerPrivateSubnet1CIDR: !Ref PeerPrivateSubnet1CIDR
+        PeerPublicSubnet1CIDR: !Ref PeerPublicSubnet1CIDR
+        PeerVPCCIDR: !Ref PeerVPCCIDR
 
   #AnBastionStack:
   #  Type: AWS::CloudFormation::Stack
