@@ -1,0 +1,176 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: VPC template for Advanced Networks
+
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+    - Label:
+        default: Peer Network Configuration
+      Parameters:
+      - PeerVPCCIDR
+      - PeerPublicSubnet1CIDR
+      - PeerPrivateSubnet1CIDR
+    ParameterLabels:
+      PeerVPCCIDR:
+        default: Peer VPC CIDR
+      PeerPublicSubnet1CIDR:
+        default: Peer Public subnet 1 CIDR
+      PeerPrivateSubnet1CIDR:
+        default: Peer Private subnet 1 CIDR
+
+
+Parameters:
+  PeerVPCCIDR:
+    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
+    ConstraintDescription: Must be a valid IP range in x.x.x.x/x notation
+    Default: 12.0.0.0/16
+    Description: CIDR Block for the VPC
+    Type: String
+  PeerPublicSubnet1CIDR:
+    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
+    ConstraintDescription: Must be a valid IP range in x.x.x.x/x notation
+    Default: 12.0.1.0/24
+    Description: CIDR Block for the public DMZ subnet 1 located in Availability Zone 1
+    Type: String
+  PeerPrivateSubnet1CIDR:
+    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
+    ConstraintDescription: Must be a valid IP range in x.x.x.x/x notation
+    Default: 12.0.10.0/24
+    Description: CIDR block for private subnet 1 located in Availability Zone 1
+    Type: String
+
+
+Resources:
+#VPC
+  PeerAnVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref PeerVPCCIDR
+      EnableDnsSupport: true
+      EnableDnsHostnames: True
+      InstanceTenancy: "default"
+      Tags:
+        - Key: Name
+          Value: "Peer Advanced Networks"
+
+#Subnets#
+#public#
+  PeerAnPublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      MapPublicIpOnLaunch: True
+      CidrBlock: !Ref PeerPublicSubnet1CIDR
+      AvailabilityZone: 
+        Fn::Select: 
+          - 0
+          - Fn::GetAZs: ""
+      Tags:
+        - Key: Name
+          Value: PeerAdvancedNetworks-Public-1
+      VpcId: !Ref PeerAnVPC
+
+#Private#
+  PeerAnPrivateSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: !Ref PeerPrivateSubnet1CIDR
+      AvailabilityZone: 
+        Fn::Select: 
+          - 0
+          - Fn::GetAZs: ""
+      Tags:
+        - Key: Name
+          Value: PeerAdvancedNetworks-Private-1
+      VpcId: !Ref PeerAnVPC
+
+#End Of Subnets#
+
+  PeerAnIGW:
+    Type: AWS::EC2::InternetGateway
+    Properties: 
+      Tags:
+        - Key: Name
+          Value: "Peer Advanced Networks"
+
+  PeerAnEIP:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+
+  PeerAnNatGW:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId:
+        Fn::GetAtt:
+          - PeerAnEIP
+          - AllocationId
+      SubnetId: !Ref PeerAnPublicSubnet1
+      Tags:
+        - Key: Name
+          Value: "Peer Advanced Networks"
+
+  PeerAnVPCGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties: 
+      InternetGatewayId: !Ref PeerAnIGW
+      VpcId: !Ref PeerAnVPC
+
+#Route Tables#
+#public#
+  PeerAnPublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties: 
+      VpcId: !Ref PeerAnVPC
+      Tags:
+        - Key: Name
+          Value: PeerAdvancedNetworks-Public-RTB
+
+  PeerAnPublicDefaultRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: "0.0.0.0/0"
+      GatewayId: !Ref PeerAnIGW
+      RouteTableId: !Ref PeerAnPublicRouteTable
+
+  PeerPublicRouteSubnetAssociation1:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties: 
+      RouteTableId: !Ref PeerAnPublicRouteTable
+      SubnetId: !Ref PeerAnPublicSubnet1
+
+#private#
+  PeerAnPrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties: 
+      VpcId: !Ref PeerAnVPC
+      Tags:
+        - Key: Name
+          Value: PeerAdvancedNetworks-Private-RTB
+
+  PeerAnPrivateDefaultRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: "0.0.0.0/0"
+      NatGatewayId: !Ref PeerAnNatGW
+      RouteTableId: !Ref PeerAnPrivateRouteTable
+
+  PeerPrivateRouteSubnetAssociation1:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties: 
+      RouteTableId: !Ref PeerAnPrivateRouteTable
+      SubnetId: !Ref PeerAnPrivateSubnet1
+#End OF Route Tables#
+
+Outputs:
+  PeerAnVPCID:
+    Description: "Peer VPC Id"
+    Value: !Ref PeerAnVPC
+
+  PeerAnPublicSubnet1:
+    Description: Peer Public Subnet1
+    Value: !Ref PeerAnPublicSubnet1
+
+  PeerAnPrivateSubnet1:
+    Description: Peer Private Subnet1
+    Value: !Ref PeerAnPrivateSubnet1

@@ -11,6 +11,9 @@ Metadata:
       - VPCCIDR
       - PublicSubnet1CIDR
       - PrivateSubnet1CIDR
+      - PeerVPCCIDR
+      - PeerPublicSubnet1CIDR
+      - PeerPrivateSubnet1CIDR
     - Label:
         default: Instance Configuration
       Parameters:
@@ -22,6 +25,12 @@ Metadata:
         default: Public subnet 1 CIDR
       PrivateSubnet1CIDR:
         default: Private subnet 1 CIDR
+      PeerVPCCIDR:
+        default: Peer VPC CIDR
+      PeerPublicSubnet1CIDR:
+        default: Peer Public subnet 1 CIDR
+      PeerPrivateSubnet1CIDR:
+        default: Peer Private subnet 1 CIDR
       SSHRemoteAccessCIDR:
         default: Allowed bastion external access CIDR
       BastionKeyPairName:
@@ -47,6 +56,24 @@ Parameters:
     Default: 11.0.10.0/24
     Description: CIDR block for private subnet 1 located in Availability Zone 1
     Type: String
+  PeerVPCCIDR:
+    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
+    ConstraintDescription: Must be a valid IP range in x.x.x.x/x notation
+    Default: 12.0.0.0/16
+    Description: CIDR Block for the VPC
+    Type: String
+  PeerPublicSubnet1CIDR:
+    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
+    ConstraintDescription: Must be a valid IP range in x.x.x.x/x notation
+    Default: 12.0.1.0/24
+    Description: CIDR Block for the public DMZ subnet 1 located in Availability Zone 1
+    Type: String
+  PeerPrivateSubnet1CIDR:
+    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
+    ConstraintDescription: Must be a valid IP range in x.x.x.x/x notation
+    Default: 12.0.10.0/24
+    Description: CIDR block for private subnet 1 located in Availability Zone 1
+    Type: String
   SSHRemoteAccessCIDR:
     AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
     ConstraintDescription: CIDR block parameter must be in the form x.x.x.x/x
@@ -70,12 +97,21 @@ Resources:
         PublicSubnet1CIDR: !Ref PublicSubnet1CIDR
         VPCCIDR: !Ref VPCCIDR
 
-  AnBastionStack:
+  PeerAnVPCStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://cfn-automated-objects.s3.eu-central-1.amazonaws.com/ec2.yaml
+      TemplateURL: https://cfn-automated-objects.s3.eu-central-1.amazonaws.com/peer-vpc.yaml
       Parameters:
-        VPCID: !GetAtt AnVPCStack.Outputs.AnVPCID
-        VPCSubnetID: !GetAtt AnVPCStack.Outputs.AnPublicSubnet1
-        SSHRemoteAccessCIDR: !Ref SSHRemoteAccessCIDR
-        BastionKeyPairName: !Ref BastionKeyPairName
+        PrivateSubnet1CIDR: !Ref PeerPrivateSubnet1CIDR
+        PublicSubnet1CIDR: !Ref PeerPublicSubnet1CIDR
+        VPCCIDR: !Ref PeerVPCCIDR
+
+  #AnBastionStack:
+  #  Type: AWS::CloudFormation::Stack
+  #  Properties:
+  #    TemplateURL: https://cfn-automated-objects.s3.eu-central-1.amazonaws.com/ec2.yaml
+  #    Parameters:
+  #      VPCID: !GetAtt AnVPCStack.Outputs.AnVPCID
+  #      VPCSubnetID: !GetAtt AnVPCStack.Outputs.AnPublicSubnet1
+  #      SSHRemoteAccessCIDR: !Ref SSHRemoteAccessCIDR
+  #      BastionKeyPairName: !Ref BastionKeyPairName
