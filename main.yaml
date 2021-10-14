@@ -109,7 +109,7 @@ Resources:
   AnPeerCoonectionStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://cfn-automated-objects.s3.eu-central-1.amazonaws.com/peer-cons.yaml
+      TemplateURL: https://cfn-automated-objects.s3.eu-central-1.amazonaws.com/peer-con.yaml
       Parameters:
         DestinationVPCCIDR: !Ref VPCCIDR
         DestinationVPCID: !GetAtt AnVPCStack.Outputs.AnVPCID
