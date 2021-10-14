@@ -10,12 +10,15 @@ Metadata:
       Parameters:
       - DestinationVPCCIDR
       - DestinationVPCID
+      - OriginVPCID
       - OriginPublicRouteTable
     ParameterLabels:
       DestinationVPCCIDR:
         default: Acceptor VPC CIDR
       DestinationVPCID:
         default: Acceptor VPC ID
+      OriginVPCID:
+        default: Origin VPC ID
       OriginPublicRouteTable:
         default: Origin VPC Public Route Table
 
@@ -29,6 +32,9 @@ Parameters:
     Type: String
   DestinationVPCID:
     Description: Acceptor VPC ID
+    Type: String
+  OriginVPCID:
+    Description: Origin VPC ID
     Type: String
   OriginPublicRouteTable:
     Description: Origin VPC Public Route Table
@@ -46,7 +52,7 @@ Resources:
   AnVPCPeeringConnection:
     Type: 'AWS::EC2::VPCPeeringConnection'
     Properties:
-      VpcId: !Ref VPC
+      VpcId: !Ref OriginVPCID
       PeerVpcId: !Ref DestinationVPCID
       Tags:
       -

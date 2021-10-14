@@ -113,7 +113,8 @@ Resources:
       Parameters:
         DestinationVPCCIDR: !Ref VPCCIDR
         DestinationVPCID: !GetAtt AnVPCStack.Outputs.AnVPCID
-        OriginPublicRouteTable: !Ref PeerAnVPCStack.Outputs.PeerAnPublicRouteTableID
+        OriginVPCID: !GetAtt PeerAnVPCStack.Outputs.PeerAnVPCID
+        OriginPublicRouteTable: !GetAtt PeerAnVPCStack.Outputs.PeerAnPublicRouteTableID
 
   #AnBastionStack:
   #  Type: AWS::CloudFormation::Stack
