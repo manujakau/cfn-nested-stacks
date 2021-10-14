@@ -168,9 +168,13 @@ Outputs:
     Value: !Ref PeerAnVPC
 
   PeerAnPublicSubnet1:
-    Description: Peer Public Subnet1
+    Description: "Peer Public Subnet1"
     Value: !Ref PeerAnPublicSubnet1
 
   PeerAnPrivateSubnet1:
-    Description: Peer Private Subnet1
+    Description: "Peer Private Subnet1"
     Value: !Ref PeerAnPrivateSubnet1
+  
+  PeerAnPublicRouteTableID:
+    Description: "Peer Origin Public Route Table Id"
+    Value: !Ref PeerAnPublicRouteTable

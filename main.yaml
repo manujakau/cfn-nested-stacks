@@ -106,6 +106,15 @@ Resources:
         PeerPublicSubnet1CIDR: !Ref PeerPublicSubnet1CIDR
         PeerVPCCIDR: !Ref PeerVPCCIDR
 
+  AnPeerCoonectionStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://cfn-automated-objects.s3.eu-central-1.amazonaws.com/peer-cons.yaml
+      Parameters:
+        DestinationVPCCIDR: !Ref VPCCIDR
+        DestinationVPCID: !GetAtt AnVPCStack.Outputs.AnVPCID
+        OriginPublicRouteTable: !Ref PeerAnVPCStack.Outputs.PeerAnPublicRouteTableID
+
   #AnBastionStack:
   #  Type: AWS::CloudFormation::Stack
   #  Properties:

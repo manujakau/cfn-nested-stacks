@@ -1,0 +1,54 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: VPC template for Advanced Networks
+
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+    - Label:
+        default: Peer Configuration
+      Parameters:
+      - DestinationVPCCIDR
+      - DestinationVPCID
+      - OriginPublicRouteTable
+    ParameterLabels:
+      DestinationVPCCIDR:
+        default: Acceptor VPC CIDR
+      DestinationVPCID:
+        default: Acceptor VPC ID
+      OriginPublicRouteTable:
+        default: Origin VPC Public Route Table
+
+
+Parameters:
+  DestinationVPCCIDR:
+    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
+    ConstraintDescription: Must be a valid IP range in x.x.x.x/x notation
+    Default: 11.0.0.0/16
+    Description: CIDR Block for the Accept VPC
+    Type: String
+  DestinationVPCID:
+    Description: Acceptor VPC ID
+    Type: String
+  OriginPublicRouteTable:
+    Description: Origin VPC Public Route Table
+    Type: String
+
+
+Resources:
+  PeeringRoute:
+    Type: 'AWS::EC2::Route'
+    Properties:
+      DestinationCidrBlock: !Ref DestinationVPCCIDR
+      RouteTableId: !Ref OriginPublicRouteTable
+      VpcPeeringConnectionId: !Ref AnVPCPeeringConnection
+
+  AnVPCPeeringConnection:
+    Type: 'AWS::EC2::VPCPeeringConnection'
+    Properties:
+      VpcId: !Ref VPC
+      PeerVpcId: !Ref DestinationVPCID
+      Tags:
+      -
+        Key: "Name"
+        Value: "Advanced Networks VPCPeer"
